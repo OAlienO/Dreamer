@@ -1,15 +1,16 @@
+#!/usr/bin/python
+
 import sys
 import Queue
 import urllib
 import urllib2
 from bs4 import BeautifulSoup
 
+from lib.parser.OptionParser import OptionParser
 from lib.parser.DomainParser import DomainParser
 from lib.utils.Log import Log
 
-def Spider(target):
-    log = Log(__name__)
-    domain = DomainParser(target)
+def Spider(log,option,domain):
     result = []
     blacklist = []
     q = Queue.Queue()
@@ -24,16 +25,18 @@ def Spider(target):
         try:
             response = urllib2.urlopen(urllib2.Request(now))
         except KeyboardInterrupt:
-            log.info("You pressed Ctrl+C")
+            log.Info("You pressed Ctrl+C")
             sys.exit(0)
         except:
-            log.debug("Black List -> "+now)
+            log.Debug("Black List -> "+now)
             blacklist.append(now)
             continue
 
         # Successfully Get the page
         result.append(now)
-        log.info(now)
+        log.Info(now)
+        if option.query != -1 and len(result) >= option.query:
+            break
 
         # Look for links
         links = BeautifulSoup(response.read(),"lxml").find_all('a')
@@ -45,6 +48,16 @@ def Spider(target):
                 if link != None:
                     q.put(link)
             except:
-                log.debug("This link didn't have href -> "+str(link))
+                log.Debug("This link didn't have href -> "+str(link))
 
-Spider(sys.argv[1])
+def Dream():
+    log = Log(__name__)
+    option = OptionParser(sys.argv)
+    domain = DomainParser(option.target)
+    try:
+        Spider(log,option,domain)
+    except KeyboardInterrupt as error:
+        log.Info("You pressed Ctrl+C")
+        sys.exit(0)
+
+Dream()

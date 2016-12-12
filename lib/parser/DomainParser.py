@@ -21,6 +21,8 @@ class DomainParser(object):
         except urllib2.URLError as error:
             self.log.error(str(error))
             pass
+        except:
+            print self.link
     def Append(self,link):
         domain = self.GetDomain(link)
         if domain == None:

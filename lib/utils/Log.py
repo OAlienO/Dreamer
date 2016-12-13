@@ -16,18 +16,22 @@ class Log(object):
         self.log.Info("  python Dreamer.py [options] (target link)")
         self.log.Info("  -q number, --query=number  How many queries will be retrieved")
     def Debug(self,text):
-        self.logger.debug(Color.aquamarine+" "*3+text+Color.normal)
+        self.logger.debug(Color.bold+Color.aquamarine+" "*2+text+Color.normal)
     def Info(self,text):
-        self.logger.info(Color.green+" "*4+text+Color.normal)
+        self.logger.info(Color.bold+Color.green+" "*3+text+Color.normal)
+    def Info2(self,text):
+        self.logger.info(Color.green+" "*3+text+Color.normal)
+    def Info3(self,text):
+        self.logger.info(" "*3+text)
     def Warning(self,text):
-        self.logger.warning(Color.yellow+" "*1+text+Color.normal)
+        self.logger.warning(Color.bold+Color.yellow+text+Color.normal)
     def Error(self,text,usage = False):
-        self.logger.error(Color.red+" "*3+text+Color.normal)
+        self.logger.error(Color.bold+Color.red+" "*2+text+Color.normal)
         if usage:
             self.Usage()
         sys.exit(0)
-    def Critical(self,text,usage = False):
-        self.logger.critical(Color.bold+Color.red+text+Color.normal)
+    def Error2(self,text,usage = False):
+        self.logger.error(Color.red+" "*2+text+Color.normal)
         if usage:
             self.Usage()
         sys.exit(0)

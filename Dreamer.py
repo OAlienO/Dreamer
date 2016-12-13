@@ -4,60 +4,79 @@ import sys
 import Queue
 import urllib
 import urllib2
+import threading
 from bs4 import BeautifulSoup
 
 from lib.parser.OptionParser import OptionParser
 from lib.parser.DomainParser import DomainParser
 from lib.utils.Log import Log
 
-def Spider(log,option,domain):
-    result = []
-    blacklist = []
-    q = Queue.Queue()
-    q.put(domain.link)
-    while not q.empty():
-        # Get a page from queue and check whether we has seen it before
-        now = q.get()
-        if now in result or now in blacklist:
-            continue
+class Dreamer(object):
+    def __init__(self):
+        self.log = Log(__name__)
+        self.option = OptionParser(sys.argv)
+        self.domain = DomainParser(self.option.target)
+        self.finished = 0
+        self.finished_lock = threading.Lock()
+        self.pages = Queue.Queue()
+        self.tasks = Queue.Queue()
+        self.tasks.put(self.domain.domain)
+    def TaskManager(self):
+        for i in xrange(self.option.thread):
+            t = threading.Thread(target = self.Worker,args = (self.log,self.option,self.domain))
+            t.daemon = True
+            t.start()
+        
+        # Start to manage the tasks
+        wholelist = [self.domain.domain]
+        whitelist = []
+        while True:
+            if not self.pages.empty():
+                # Get the successfully retrieved page
+                page = self.pages.get()
+                self.log.Info2("I'm now at -> "+page[0])
+                whitelist.append(page[0])
 
-        # Try to get the page
-        try:
-            response = urllib2.urlopen(urllib2.Request(now))
-        except KeyboardInterrupt:
-            log.Info("You pressed Ctrl+C")
-            sys.exit(0)
-        except:
-            log.Debug("Black List -> "+now)
-            blacklist.append(now)
-            continue
+                # Analyze the page
+                links = BeautifulSoup(page[1],"lxml").find_all('a')
+                self.log.Info3("  this page has "+str(len(links))+" links")
 
-        # Successfully Get the page
-        result.append(now)
-        log.Info(now)
-        if option.query != -1 and len(result) >= option.query:
-            break
+                # Check whether has enough request being made
+                if self.option.query != -1 and len(whitelist) >= self.option.query:
+                    break
 
-        # Look for links
-        links = BeautifulSoup(response.read(),"lxml").find_all('a')
+                # Put the link into tasks for Worker to work
+                for link in links:
+                    try:
+                        link = self.domain.Append(link['href'])
+                        if link != None and link not in wholelist:
+                            self.tasks.put(link)
+                            wholelist.append(link)
+                    except:
+                        self.log.Debug("This link didn't have href -> "+str(link))
+                
+    def Worker(self,log,option,domain):
+        log = Log(str(threading.current_thread()))
+        while True:
+            if not self.tasks.empty():
+                # Get the task
+                now = self.tasks.get()
 
-        # Push all links into queue for further explore
-        for link in links:
-            try:
-                link = domain.Append(link['href'])
-                if link != None:
-                    q.put(link)
-            except:
-                log.Debug("This link didn't have href -> "+str(link))
+                # Try to get the page
+                try:
+                    response = urllib2.urlopen(urllib2.Request(now))
+                except KeyboardInterrupt:
+                    log.Info("You pressed Ctrl+C")
+                    sys.exit(0)
+                except:
+                    log.Debug("I can't get this url -> "+now)
+                    continue
+                
+                # Put the result into queue for TaskManager to analyze it
+                self.pages.put((now,response))
 
-def Dream():
-    log = Log(__name__)
-    option = OptionParser(sys.argv)
-    domain = DomainParser(option.target)
-    try:
-        Spider(log,option,domain)
-    except KeyboardInterrupt as error:
-        log.Info("You pressed Ctrl+C")
-        sys.exit(0)
-
-Dream()
+dream = Dreamer()
+try:
+    dream.TaskManager()
+except KeyboardInterrupt:
+    dream.log.Info("You pressed Ctrl+C")

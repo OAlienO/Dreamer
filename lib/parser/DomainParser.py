@@ -1,4 +1,5 @@
 import re
+import sys
 import urllib
 import urllib2
 
@@ -18,10 +19,13 @@ class DomainParser(object):
     def Check(self):
         try:
             response = urllib2.urlopen(urllib2.Request(self.domain))
+        except KeyboardInterrupt:
+            self.log.Info("You pressed Ctrl+C")
+            sys.exit(0)
         except urllib2.URLError as error:
-            self.log.error(str(error))
+            self.log.Error(str(error))
         except:
-            self.log.error("Unknown error when request to domain url")
+            self.log.Error("Unknown error when request to domain url")
     def Append(self,link):
         domain = self.GetDomain(link)
         if domain == None:

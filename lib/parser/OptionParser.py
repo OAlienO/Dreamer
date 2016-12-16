@@ -10,23 +10,30 @@ class OptionParser(object):
         # Options
         self.target = ""
         self.query = -1
-        self.thread = 5
+        self.thread = -1
 
         self.Parse(argv)
 
+    def Usage(self):
+        self.log.Info("Usage:")
+        self.log.Info2("  python Dreamer.py [options] (target link)")
+        self.log.Info2("  -h, --help : See this page")
+        self.log.Info2("  -q number, --query=number : How many queries will be retrieved")
+        self.log.Info2("  -t number, --thread=number : How many thread you want to use")
+
     def Parse(self,argv):
         try:
-            opts,args = getopt.getopt(argv[1:],"q:t:",["query=","thread="])
-            if len(args) == 0:
-                raise Exception("You didn't specify a target")
+            opts,args = getopt.getopt(argv[1:],"hq:t:",["help","query=","thread="])
         except getopt.GetoptError as error:
-            self.log.Error("Invalid Format: "+str(error),usage = True)
+            self.log.Error("Invalid Format: "+str(error),usage = self.Usage)
         except Exception as error:
-            self.log.Error("Invalid Format: "+str(error),usage = True)
+            self.log.Error("Invalid Format: "+str(error),usage = self.Usage)
 
-        self.target = args[0]
         for o,a in opts:
-            if o in ('-q','--query'):
+            if o in ('-h','--help'):
+                self.Usage()
+                sys.exit(0)
+            elif o in ('-q','--query'):
                 try:
                     self.query = int(a)
                     if self.query <= 0:
@@ -44,3 +51,13 @@ class OptionParser(object):
                     self.log.Error(str(error))
                 except Exception as error:
                     self.log.Error(str(error))
+
+        self.target = args[0]
+        if self.thread == -1:
+            self.thread = 5
+
+        try:
+            if self.target == "" :
+                raise Exception("You didn't specify a target")
+        except Exception as error:
+            self.log.Error(str(error))

@@ -16,21 +16,21 @@ class Dreamer(object):
         self.log = Log(__name__)
         self.option = OptionParser(sys.argv)
         self.domain = DomainParser(self.option.target)
-        self.finished = 0
-        self.finished_lock = threading.Lock()
         self.pages = Queue.Queue()
         self.tasks = Queue.Queue()
         self.tasks.put(self.domain.domain)
+
     def TaskManager(self):
-        for i in xrange(self.option.thread):
-            t = threading.Thread(target = self.Worker,args = (self.log,self.option,self.domain))
-            t.daemon = True
-            t.start()
-        
         # Start to manage the tasks
         wholelist = [self.domain.domain]
         whitelist = []
-        while True:
+        while not self.tasks.empty() or not self.pages.empty() or threading.active_count()-1 != 0:
+            # Assign new thread while threads are not enough
+            if not self.tasks.empty() and threading.active_count()-1 <= self.option.thread:
+                t = threading.Thread(target = self.Worker)
+                t.daemon = True
+                t.start()
+                
             if not self.pages.empty():
                 # Get the successfully retrieved page
                 page = self.pages.get()
@@ -39,7 +39,7 @@ class Dreamer(object):
 
                 # Analyze the page
                 links = BeautifulSoup(page[1],"lxml").find_all('a')
-                self.log.Info3("  this page has "+str(len(links))+" links")
+                self.log.Info3("  this page has "+str(len(links))+" links"+" "+str(self.tasks.qsize()))
 
                 # Check whether has enough request being made
                 if self.option.query != -1 and len(whitelist) >= self.option.query:
@@ -52,28 +52,31 @@ class Dreamer(object):
                         if link != None and link not in wholelist:
                             self.tasks.put(link)
                             wholelist.append(link)
+                    except KeyboardInterrupt:
+                        log.Info("You pressed Ctrl+C")
+                        sys.exit(0)
                     except:
                         self.log.Debug("This link didn't have href -> "+str(link))
-                
-    def Worker(self,log,option,domain):
-        log = Log(str(threading.current_thread()))
-        while True:
-            if not self.tasks.empty():
-                # Get the task
-                now = self.tasks.get()
+            
 
-                # Try to get the page
-                try:
-                    response = urllib2.urlopen(urllib2.Request(now))
-                except KeyboardInterrupt:
-                    log.Info("You pressed Ctrl+C")
-                    sys.exit(0)
-                except:
-                    log.Debug("I can't get this url -> "+now)
-                    continue
-                
-                # Put the result into queue for TaskManager to analyze it
-                self.pages.put((now,response))
+    def Worker(self):
+        log = Log(threading.current_thread().getName())
+        while not self.tasks.empty():
+            # Get the task
+            now = self.tasks.get()
+
+            # Try to get the page
+            try:
+                response = urllib2.urlopen(urllib2.Request(now))
+            except KeyboardInterrupt:
+                log.Info("You pressed Ctrl+C")
+                sys.exit(0)
+            except:
+                log.Debug("I can't get this url -> "+now)
+                continue
+            
+            # Put the result into queue for TaskManager to analyze it
+            self.pages.put((now,response))
 
 dream = Dreamer()
 try:

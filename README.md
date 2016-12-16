@@ -11,5 +11,8 @@ Use MultiThreading
 Add Option -> -t,--thread ( indicate the amount of threads )
 
 ## Version 2.1.0
-Add Option -> -h,--help ( See the usage page )
+Add Option -> -h,--help ( see the usage page )
 Fix some bugs
+
+## Version 2.2.0
+Add Option -> -m,--mode ( can choose three page : domain,subdomain,page )

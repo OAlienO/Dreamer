@@ -11,6 +11,7 @@ class OptionParser(object):
         self.target = ""
         self.query = -1
         self.thread = -1
+        self.mode = ""
 
         self.Parse(argv)
 
@@ -23,7 +24,7 @@ class OptionParser(object):
 
     def Parse(self,argv):
         try:
-            opts,args = getopt.getopt(argv[1:],"hq:t:",["help","query=","thread="])
+            opts,args = getopt.getopt(argv[1:],"hq:t:m:",["help","query=","thread=","mode="])
         except getopt.GetoptError as error:
             self.log.Error("Invalid Format: "+str(error),usage = self.Usage)
         except Exception as error:
@@ -51,13 +52,22 @@ class OptionParser(object):
                     self.log.Error(str(error))
                 except Exception as error:
                     self.log.Error(str(error))
+            elif o in ('-m','--mode'):
+                try:
+                    self.mode = a
+                    if self.mode not in ("domain","subdomain","page"):
+                        raise Exception("There are only three mode : domain, subdomain, page")
+                except Exception as error:
+                    self.log.Error(str(error))
 
-        self.target = args[0]
+        # Set target
+        if len(args) > 0:
+            self.target = args[0]
+        else:
+            self.log.Error(str(error))
+            
+        # Default setting
         if self.thread == -1:
             self.thread = 5
-
-        try:
-            if self.target == "" :
-                raise Exception("You didn't specify a target")
-        except Exception as error:
-            self.log.Error(str(error))
+        if self.mode == "":
+            self.mode = "domain"

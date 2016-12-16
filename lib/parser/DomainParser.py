@@ -12,7 +12,7 @@ class DomainParser(object):
         self.range = self.GetDomain(link) if mode == "domain" else link.rstrip('/')
         self.Check()
     def GetDomain(self,link):
-        if re.search("^https?://",link) == None:
+        if link == None or re.search("^https?://",link) == None:
             return None
         head = link.find("//")
         tail = link[head+2:].find("/")
@@ -24,10 +24,13 @@ class DomainParser(object):
             self.log.Info("You pressed Ctrl+C")
             sys.exit(0)
         except urllib2.URLError as error:
-            self.log.Error2(str(error))
+            self.log.Error(str(error))
         except:
-            self.log.Error2("Unknown error when request to domain url")
+            self.log.Error("Unknown error when request to domain url")
     def Append(self,link):
+        if link == None:
+            return None
+        # Relative path
         if self.GetDomain(link) == None:
             if link[0] == '#':
                 return None
@@ -36,7 +39,9 @@ class DomainParser(object):
             if link[-1] == '/':
                 link = link[:-1]
             link = self.domain + link
+        # Absolute path inside the range
         if re.search("^"+self.range,link) != None:
             return link
+        # Others
         else:
             return None

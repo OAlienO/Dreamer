@@ -26,8 +26,3 @@ class Log(object):
         if usage:
             usage()
         sys.exit(0)
-    def Error2(self,text,usage = None):
-        self.logger.error(Color.red+"\t"+text+Color.normal)
-        if usage:
-            usage()
-        sys.exit(0)

@@ -20,3 +20,9 @@ Add Option -> -m,--mode ( can choose three page : domain,subdomain,page )
 ## Version 2.2.1
 Update Usage
 Fix some bugs
+
+## Version 2.3.0
+Add Option -> --attr ( specify the object you want to crawl )
+Add Option -> -q,--quiet ( quiet mode )
+Change Option Name -> -q,--query TO -n,--number
+Fix some bugs

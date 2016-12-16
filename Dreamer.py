@@ -61,7 +61,7 @@ class Dreamer(object):
                 elif self.option.mode == "page":
                     pass
                 else:
-                    self.log.Error2("I cant' recognize \""+self.option.mode+"\" mode")
+                    self.log.Error("I cant' recognize \""+self.option.mode+"\" mode")
             
 
     def Worker(self):

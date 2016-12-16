@@ -16,3 +16,7 @@ Fix some bugs
 
 ## Version 2.2.0
 Add Option -> -m,--mode ( can choose three page : domain,subdomain,page )
+
+## Version 2.2.1
+Update Usage
+Fix some bugs

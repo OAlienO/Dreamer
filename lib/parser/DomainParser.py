@@ -24,9 +24,9 @@ class DomainParser(object):
             self.log.Info("You pressed Ctrl+C")
             sys.exit(0)
         except urllib2.URLError as error:
-            self.log.Error(str(error))
+            self.log.Error2(str(error))
         except:
-            self.log.Error("Unknown error when request to domain url")
+            self.log.Error2("Unknown error when request to domain url")
     def Append(self,link):
         if self.GetDomain(link) == None:
             if link[0] == '#':

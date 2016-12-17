@@ -47,3 +47,13 @@ Add Option -> --header ( set the header field )
 Change mode -> page TO repeater
 
 Fix some bugs
+
+## Version 3.0.0
+
+Add mode repeater
+
+Add Option -> --param ( set the url parameters )
+
+Add Option -> --data ( set post data )
+
+Fix some bugs

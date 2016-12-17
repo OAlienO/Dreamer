@@ -17,9 +17,9 @@ class OptionParser(object):
         self.tag = ""
         self.attribute = {}
         self.css = ""
-        self.parameter = {}
+        self.parameter = []
         self.header = {}
-        self.data = {}
+        self.data = []
         self.cookie = False
 
         self.Parse(argv)
@@ -28,18 +28,18 @@ class OptionParser(object):
         self.log.Info("Usage:")
         self.log.Info2("  python Dreamer.py [options] (target link)")
         self.log.Info2("Options:")
-        self.log.Info2("  -h,        --help                         : See this page")
-        self.log.Info2("  -q,        --quiet                        : Show only the result ( default : False )")
-        self.log.Info2("  -n integer, --number=integer              : How many queries will be retrieved ( default : unlimited )")
-        self.log.Info2("  -t integer, --thread=integer              : The maximum threads you want to use ( default : 5 )")
-        self.log.Info2("  -m string, --mode=string                  : Three modes as follow -> domain ,subdomain, repeater ( default : domain )")
-        self.log.Info2("  --tag=string                              : Specify the object you want to find with tag")
-        self.log.Info2("  --attr=string:string[,string:string...]   : Specify the object you want to find with attribute")
-        self.log.Info2("  --css=string                              : Specify the object you want to find with css selector")
-        self.log.Info2("  --param=string:string[,string:string...]    : Set url parameter")
-        self.log.Info2("  --header=string:string[,string:string...] : Set the header field")
-        self.log.Info2("  --data=string:string,[,string:string...]  : Set post data you want to send")
-        self.log.Info2("  --cookie                                  : Keep the cookie ( default : False )")
+        self.log.Info2("  -h,        --help                 : See this page")
+        self.log.Info2("  -q,        --quiet                : Show only the result ( default : False )")
+        self.log.Info2("  -n integer, --number=integer      : How many queries will be retrieved ( default : unlimited )")
+        self.log.Info2("  -t integer, --thread=integer      : The maximum threads you want to use ( default : 5 )")
+        self.log.Info2("  -m string, --mode=string          : Three modes as follow -> domain ,subdomain, repeater ( default : domain )")
+        self.log.Info2("  --tag=string                      : Specify the object you want to find with tag")
+        self.log.Info2("  --attr=string:string[,...]        : Specify the object you want to find with attribute")
+        self.log.Info2("  --css=string                      : Specify the object you want to find with css selector")
+        self.log.Info2("  --param=string:string:mode[,...]  : Set url parameter, two modes as follow -> static, number")
+        self.log.Info2("  --header=string:string[,...]      : Set the header field")
+        self.log.Info2("  --data=string:string:mode,[,...]  : Set post data you want to send, two modes as follow -> static, number")
+        self.log.Info2("  --cookie                          : Keep the cookie ( default : False )")
 
     def Parse(self,argv):
         try:
@@ -87,17 +87,21 @@ class OptionParser(object):
                         attr = i.split(':')
                         self.attribute[attr[0]] = attr[1]
                 else:
-                    self.log.Error("Attribute format not match -> --attr=string:string[,string:string]...")
+                    self.log.Error("Attribute format not match -> --attr=string:string[,...]")
             elif o in ('--css'):
                 self.css = a
             elif o in ('--param'):
-                if re.search("^([\w-]+:[\w-]+)(,[\w-]+:[\w-]+)*$",a) != None:
+                try:
+                    if re.search("^([\w%-]+:[\w%-]+:[\w%-]+)(,[\w%-]+:[\w%-]+:[\w%-]+)*$",a) == None:
+                        raise Exception("Attribute format not match -> --param=string:string[,...]")
                     attrlist = a.split(',')
                     for i in attrlist:
                         attr = i.split(':')
-                        self.parameter[attr[0]] = attr[1]
-                else:
-                    self.log.Error("Attribute format not match -> --attr=string:string[,string:string]...")
+                        if attr[2] not in ("static","number"):
+                            raise Exception("We do not support "+attr[2]+" mode in --param")
+                        self.parameter.append(attr)
+                except Exception as error:
+                    self.log.Error(str(error))
             elif o in ('--header'):
                 if re.search("^([\w-]+:[\w-]+)(,[\w-]+:[\w-]+)*$",a) != None:
                     attrlist = a.split(',')
@@ -105,15 +109,19 @@ class OptionParser(object):
                         attr = i.split(':')
                         self.header[attr[0]] = attr[1]
                 else:
-                    self.log.Error("Attribute format not match -> --attr=string:string[,string:string]...")
+                    self.log.Error("Attribute format not match -> --header=string:string[,...]")
             elif o in ('--data'):
-                if re.search("^([\w-]+:[\w-]+)(,[\w-]+:[\w-]+)*$",a) != None:
+                try:
+                    if re.search("^([\w-]+:[\w-]+:[\w-]+)(,[\w-]+:[\w-]+:[\w-]+)*$",a) == None:
+                        raise Exception("Attribute format not match -> --data=string:string[,...]")
                     attrlist = a.split(',')
                     for i in attrlist:
                         attr = i.split(':')
-                        self.data[attr[0]] = attr[1]
-                else:
-                    self.log.Error("Attribute format not match -> --attr=string:string[,string:string]...")
+                        if attr[2] not in ("static","number"):
+                            raise Exception("We do not support "+attr[2]+" mode in --data")
+                        self.data.append(attr)
+                except Exception as error:
+                    self.log.Error(str(error))
             elif o in ('--cookie'):
                 self.cookie = True
             else:
@@ -128,7 +136,7 @@ class OptionParser(object):
         # Check
         if self.css != "" and (self.tag != "" or self.attribute != {}):
             self.log.Error("--tag and --attr should not be use together with --css")
-        if self.mode != "repeater" and (self.parameter != {} or self.data != {}):
+        if self.mode != "repeater" and (self.parameter != [] or self.data != []):
             self.log.Error("--param and --data should be use in repeater mode")
 
         # Default setting

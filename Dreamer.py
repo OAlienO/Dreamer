@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from lib.parser.OptionParser import OptionParser
 from lib.parser.DomainParser import DomainParser
 from lib.utils.Log import Log
+from lib.config.Config import Config
 
 class Dreamer(object):
     def __init__(self):
@@ -18,7 +19,6 @@ class Dreamer(object):
         self.domain = DomainParser(self.option.target,self.option.mode)
         self.pages = Queue.Queue()
         self.tasks = Queue.Queue()
-        self.tasks.put(self.domain.range)
         self.result = []
 
     def Run(self):
@@ -26,6 +26,8 @@ class Dreamer(object):
 
     def TaskManager(self):
         # Start to manage the tasks
+        if self.option.mode in ("domain","subdomain"):
+            self.tasks.put((self.domain.range,self.option.header))
         wholelist = [self.domain.range]
         whitelist = []
         while not self.tasks.empty() or not self.pages.empty() or threading.active_count()-1 != 0:
@@ -39,34 +41,34 @@ class Dreamer(object):
                 # Get the successfully retrieved page
                 page = self.pages.get()
                 if not self.option.quiet:
-                    self.log.Info2("I'm now at -> "+page[0])
-                whitelist.append(page[0])
+                    self.log.Info2("I'm now at -> "+page.geturl())
+                whitelist.append(page.geturl())
 
                 # Analyze the page
-                soup = BeautifulSoup(page[1],"lxml")
+                soup = BeautifulSoup(page,"lxml")
                 self.Analyzer(soup)
-
-                # Get all links
-                links = soup.find_all('a')
-                if not self.option.quiet:
-                    self.log.Info3("  this page has "+str(len(links))+" links")
 
                 # Check whether has enough request being made
                 if self.option.number != -1 and len(whitelist) >= self.option.number:
                     break
 
-                # Put the link into tasks for Worker to work
-                if self.option.mode == "domain" or self.option.mode == "subdomain":
+                if self.option.mode in ("domain","subdomain"):
+                    # Get all links
+                    links = soup.find_all('a')
+                    if not self.option.quiet:
+                        self.log.Info3("  this page has "+str(len(links))+" links")
+
+                    # Put the link into tasks for Worker to work
                     for link in links:
                         try:
                             link = self.domain.Append(link.get('href'))
                             if link != None and link not in wholelist:
-                                self.tasks.put(link)
+                                self.tasks.put((link,self.option.header))
                                 wholelist.append(link)
                         except KeyboardInterrupt:
                             log.Info("You pressed Ctrl+C")
                             sys.exit(0)
-                elif self.option.mode == "page":
+                elif self.option.mode == "repeater":
                     pass
                 else:
                     self.log.Error("I cant' recognize \""+self.option.mode+"\" mode")
@@ -76,37 +78,49 @@ class Dreamer(object):
         log = Log(threading.current_thread().getName())
         while not self.tasks.empty():
             # Get the task
-            now = self.tasks.get()
+            front = self.tasks.get()
+            url = front[0]
+            header = front[1]
 
             # Try to get the page
             try:
-                response = urllib2.urlopen(urllib2.Request(now))
+                if header.get("User-Agent") == None:
+                    header["User-Agent"] = Config.UserAgent
+                request = urllib2.Request(url,headers = header)
+                opener = urllib2.build_opener()
+                response = opener.open(request)
             except KeyboardInterrupt:
                 log.Info("You pressed Ctrl+C")
                 sys.exit(0)
             except:
-                log.Debug("I can't get this url -> "+now)
+                log.Debug("I can't get this url -> "+url)
                 continue
             
             # Put the result into queue for TaskManager to analyze it
-            self.pages.put((now,response))
+            self.pages.put(response)
 
     def Analyzer(self,soup):
-        selector = self.option.tag
-        for i in self.option.attribute:
-            selector += "[" + i[0] + "=" + '"' + i[1] + '"' + "]"
+        selector = ""
+        if self.option.css != "":
+            selector = self.option.css
+        else:
+            selector = self.option.tag
+            for key,value in self.option.attribute:
+                selector += "[" + key + "=" + '"' + value + '"' + "]"
  
         if selector != "":
             self.result += soup.select(selector)
 
     def Reporter(self):
         info = "Found "+str(len(self.result))+" objects"
-        if self.option.tag != "" or len(self.option.attribute) != 0:
+        if self.option.css != "":
+            info += " with css selector : " + self.option.css
+        elif self.option.tag != "" or len(self.option.attribute) != 0:
             info += " with"
-        if self.option.tag != "":
-            info += " tag : "+self.option.tag
-        for i in self.option.attribute:
-            info += ", " + i[0] + " : " + i[1]
+            if self.option.tag != "":
+                info += " tag : "+self.option.tag
+            for key,value in self.option.attribute:
+                info += ", " + key + " : " + value
         self.log.Info(info)
         if len(self.result) > 0:
             while True:

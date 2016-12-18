@@ -99,8 +99,8 @@ class Dreamer(object):
                     for key,value in static_parameter.iteritems():
                         suffix += key + "=" + value + "&"
                     link += suffix.rstrip('&')
- 
-                self.tasks.put((link,self.option.header,data))
+
+                self.tasks.put((link,self.option.header,static_data))
 
                 # Change the value
                 if parameter != []:

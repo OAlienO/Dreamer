@@ -66,6 +66,10 @@ Fix some bugs
 
 Fix some bugs
 
-## Version 3.1.1
+## Version 3.1.0
 
 Add Option -> --cookie ( maintain cookie )
+
+## Version 3.1.1
+
+Fix some bugs

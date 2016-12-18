@@ -6,6 +6,7 @@ import urllib
 import urllib2
 import threading
 from bs4 import BeautifulSoup
+from cookielib import CookieJar
 
 from lib.parser.OptionParser import OptionParser
 from lib.parser.DomainParser import DomainParser
@@ -130,6 +131,8 @@ class Dreamer(object):
 
     def Worker(self):
         log = Log(threading.current_thread().getName())
+        if self.option.cookie:
+            cj = CookieJar()
         while not self.tasks.empty():
             # Get the task
             front = self.tasks.get()
@@ -139,13 +142,22 @@ class Dreamer(object):
 
             # Try to get the page
             try:
+                # Set header
                 if header.get("User-Agent") == None:
                     header["User-Agent"] = Config.UserAgent
+
+                # Set post data
                 if data != {}:
                     request = urllib2.Request(url,headers = header,data = data)
                 else:
                     request = urllib2.Request(url,headers = header)
-                opener = urllib2.build_opener()
+
+                #Set cookie
+                if self.option.cookie:
+                    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+                else:
+                    opener = urllib2.build_opener()
+
                 response = opener.open(request)
             except KeyboardInterrupt:
                 log.Info("You pressed Ctrl+C")

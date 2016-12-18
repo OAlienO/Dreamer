@@ -32,7 +32,9 @@ Fix some bugs
 
 ## Version 2.3.0
 
-Add Option -> --attr ( specify the object you want to crawl )
+Add Option -> --tag ( specify the object you want to crawl with tag )
+
+Add Option -> --attr ( specify the object you want to crawl with attribute )
 
 Add Option -> -q,--quiet ( quiet mode )
 
@@ -41,6 +43,8 @@ Change Option Name -> -q,--query TO -n,--number
 Fix some bugs
 
 ## Version 2.4.0
+
+Add Option -> --css ( specify the object you want to crawl with css selector )
 
 Add Option -> --header ( set the header field )
 
@@ -61,3 +65,7 @@ Fix some bugs
 ## Version 3.0.1
 
 Fix some bugs
+
+## Version 3.1.1
+
+Add Option -> --cookie ( maintain cookie )

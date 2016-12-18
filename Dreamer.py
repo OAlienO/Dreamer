@@ -26,6 +26,7 @@ class Dreamer(object):
 
     def TaskManager(self):
         if self.option.mode in ("domain","subdomain"):
+            # Initialize
             self.tasks.put((self.domain.range,self.option.header,{}))
             wholelist = [self.domain.range]
             whitelist = []
@@ -68,6 +69,7 @@ class Dreamer(object):
                             sys.exit(0)
 
         elif self.option.mode == "repeater":
+            # Initialize
             static_parameter = {}
             parameter = []
             for item in self.option.parameter:

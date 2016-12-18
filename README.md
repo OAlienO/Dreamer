@@ -57,3 +57,7 @@ Add Option -> --param ( set the url parameters )
 Add Option -> --data ( set post data )
 
 Fix some bugs
+
+## Version 3.0.1
+
+Fix some bugs

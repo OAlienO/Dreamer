@@ -138,6 +138,18 @@ class OptionParser(object):
             self.log.Error("--tag and --attr should not be use together with --css")
         if self.mode != "repeater" and (self.parameter != [] or self.data != []):
             self.log.Error("--param and --data should be use in repeater mode")
+        if self.mode == "repeater":
+            if self.number == -1:
+                self.log.Error("you must specify how many requests you want in repeater mode")
+            variable = 0
+            for i in self.parameter:
+                if i[2] != "static":
+                    variable += 1
+            for i in self.data:
+                if i[2] != "static":
+                    variable += 1
+            if variable > 1:
+                self.log.Error("you shouldn't give more than one changable variable in repeater mode")
 
         # Default setting
         if self.thread == -1:

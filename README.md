@@ -2,76 +2,16 @@
 
 Automated Crawler with **Vulnerability Scanner**
 
-## Version 1.0.0
+# Dependency
 
-Basic Feature -> crawl pages following links
+### BeautifulSoup ( https://www.crummy.com/software/BeautifulSoup/bs4/doc/ )
 
-## Version 1.1.0
+```
+sudo apt-get install python-bs4
+```
 
-Add Option Parser -> has a single option -q,--query ( limit the queries )
+### Tor ( https://www.torproject.org/ )
 
-## Version 2.0.0
-
-Use MultiThreading
-
-Add Option -> -t,--thread ( indicate the amount of threads )
-
-## Version 2.1.0
-
-Add Option -> -h,--help ( see the usage page )
-
-Fix some bugs
-
-## Version 2.2.0
-
-Add Option -> -m,--mode ( can choose three page : domain,subdomain,page )
-
-## Version 2.2.1
-
-Update Usage
-
-Fix some bugs
-
-## Version 2.3.0
-
-Add Option -> --tag ( specify the object you want to crawl with tag )
-
-Add Option -> --attr ( specify the object you want to crawl with attribute )
-
-Add Option -> -q,--quiet ( quiet mode )
-
-Change Option Name -> -q,--query TO -n,--number
-
-Fix some bugs
-
-## Version 2.4.0
-
-Add Option -> --css ( specify the object you want to crawl with css selector )
-
-Add Option -> --header ( set the header field )
-
-Change mode -> page TO repeater
-
-Fix some bugs
-
-## Version 3.0.0
-
-Add mode repeater
-
-Add Option -> --param ( set the url parameters )
-
-Add Option -> --data ( set post data )
-
-Fix some bugs
-
-## Version 3.0.1
-
-Fix some bugs
-
-## Version 3.1.0
-
-Add Option -> --cookie ( maintain cookie )
-
-## Version 3.1.1
-
-Fix some bugs
+```
+sudo apt-get install tor
+```

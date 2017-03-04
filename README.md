@@ -1,1 +1,1 @@
-This repository is not maintain anymore, please go to [https://github.com/OAlienO/Dream](https://github.com/OAlienO/Dream) instead.
+This repository is not maintain anymore, please go to [https://github.com/OAlienO/DreamStrom](https://github.com/OAlienO/DreamStorm) instead.

